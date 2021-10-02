@@ -1,0 +1,66 @@
+* inv1*
+.include models.txt
+.include ass3.sub
+
+vdd supply 0 dc 3.3
+
+* Inverter Shaper
+x1 supply out1 out2 inv
+x2 supply out2 out4 inv
+x3 supply out2 out3 inv
+x4 supply out2 out3 inv
+x5 supply out2 out3 inv
+
+* Device under test*
+x6 supply out4 out5 inv
+
+* Test Load*
+x7 supply out5 out6 inv
+*x8 supply out5 out6 inv
+*x9 supply out5 out6 inv
+*x10 supply out5 out6 inv
+*x11 supply out5 out6 inv
+*x12 supply out5 out6 inv
+*x13 supply out5 out6 inv
+*x14 supply out5 out6 inv
+
+*load on load*
+x15 supply out6 out7 inv
+x16 supply out6 out7 inv
+x17 supply out6 out7 inv
+x18 supply out6 out7 inv
+
+
+* Load capacitor
+C1 Out3 0 0.1pF
+
+* Load capacitor
+C2 Out7 0 0.1pF
+
+.include models.txt
+
+* Transient Analysis
+* pulse with time period of Trep, rise and fall times = Trep/20
+.param Trep= 5n
+.param Trf = {Trep/20.0}
+.param Tw = {Trep/2.0 - Trf}
+.param hival=3.3
+.param loval=0.0
+Vpulse out1 0 DC 0 PULSE({loval} {hival} {Tw} {Trf} {Trf} {Tw} {Trep})
+.tran 1pS {3*Trep} 0nS
+.control
+run
+
+* DElay measure
+meas tran invdelay1 TRIG v(out4) VAL=1.65 RISE=2 TARG v(out5) VAL=1.65 FALL=2
+meas tran invdelay2 TRIG v(out4) VAL=1.65 FALL=2 TARG v(out5) VAL=1.65 RISE=2
+let delay = (invdelay1+invdelay2)/2
+print delay
+let gamma = 2.114127U/0.86989U
+print gamma 
+plot v(out5) 4+(out1) 8+(out4) 
+
+.endc
+.end
+
+
